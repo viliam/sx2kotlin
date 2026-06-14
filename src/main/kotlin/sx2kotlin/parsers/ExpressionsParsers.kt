@@ -97,7 +97,7 @@ class ExpressionParser : SxParser<ExpressionABC> {
         }
 
         if (text.isPrefixOperator()) {
-            val op = OperatorExpressionParser.i().read(text)
+            val op = OperatorExpressionParser.read(text)
             return Expression(expr, op, i().read(text))
         }
 
@@ -120,9 +120,9 @@ class BracketExpressionParser : SxParser<ExpressionABC> {
     }
 
     override fun read(text: Text): ExpressionABC {
-        val z1 = BracketParser.i().read(text)
+        val z1 = BracketParser.read(text)
         val ex = ExpressionParser.i().read(text)
-        val z2 = BracketParser.i().read(text)
+        val z2 = BracketParser.read(text)
 
         return BracketExpression(z1, ex, z2)
     }
@@ -145,7 +145,7 @@ class ParametersParser : SxParser<Parameters> {
             if (!text.isPrefixComma())
                 throw SxError.createNoMsg(SxErrorType.EXPECTED_PARAMETER, text.position)
 
-            CommaParser.i().read(text)
+            CommaParser.read(text)
         }
     }
 }
@@ -157,9 +157,9 @@ class CommandPostfixParser : SxParser<CommandPostfix> {
     }
 
     override fun read(text: Text): CommandPostfix {
-        val bracketOpen = BracketParser.i().read(text)
+        val bracketOpen = BracketParser.read(text)
         val parameters = ParametersParser.i().read(text)
-        val bracketClose = BracketParser.i().read(text)
+        val bracketClose = BracketParser.read(text)
         return CommandPostfix(bracketOpen, parameters, bracketClose)
     }
 }
@@ -172,7 +172,7 @@ class MemberAccessPostfixParser : SxParser<MemberAccessPostfix> {
     }
 
     override fun read(text: Text): MemberAccessPostfix {
-        val dot = DotParser.i().read(text)
+        val dot = DotParser.read(text)
         val name = WordExpressionParser.i().read(text)
         return MemberAccessPostfix(dot, name)
     }

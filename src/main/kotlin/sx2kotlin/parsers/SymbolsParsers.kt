@@ -1,112 +1,65 @@
 package sx2kotlin.parsers
 
-import sx2kotlin.*
-import sx2kotlin.words.*
+import sx2kotlin.Position
+import sx2kotlin.SxError
+import sx2kotlin.SxErrorType
+import sx2kotlin.SymbolEnum
+import sx2kotlin.SymbolGroupEnum
+import sx2kotlin.Text
+import sx2kotlin.words.Bracket
+import sx2kotlin.words.Comma
+import sx2kotlin.words.Dot
+import sx2kotlin.words.Operator
+import sx2kotlin.words.Symbol
 
-abstract class SymbolAbstractParser<out T : Symbol> : SxParser<T> {
+private class SymbolParser<out T : Symbol>(
+    symbols: Set<SymbolEnum>,
+    private val exceptionType: SxErrorType,
+    private val create: (Position, SymbolEnum) -> T
+) : SxParser<T> {
 
-    protected open fun nextCharPosition(text: Text): Position? {
-        return text.nextCharPosition()
-    }
+    private val symbols = symbols.sortedByDescending { it.value.length }
 
     override fun read(text: Text): T {
         try {
-            val poz = nextCharPosition(text) ?: text.position
-            val sSymbol = takeSymbol(text)
-            val eSymbol = SymbolEnum.makeSymbol(sSymbol)
-            return create(poz, eSymbol)
+            val position = text.nextCharPosition() ?: text.position
+            val symbol = takeSymbol(text)
+            return create(position, symbol)
         } catch (ex: SxError) {
             throw SxError.create(ex.typ, text.position, text.line)
         }
     }
 
-    abstract fun getSymbols(): Set<SymbolEnum>
+    private fun takeSymbol(text: Text): SymbolEnum {
+        val remainingText = text.takeEndOfLine()
+        val symbol = symbols.firstOrNull { remainingText.startsWith(it.value) }
+            ?: throw SxError.create(exceptionType, text.position, text.line)
 
-    abstract fun create(position: Position, enum: SymbolEnum?): T
-
-    abstract fun getExceptionType(): SxErrorType
-
-    private fun takeSymbol(text: Text): String {
-        val s = text.takeEndOfLine()
-        val symbols = getSymbols().map { it.value }.sortedByDescending { it.length }
-
-        for (sym in symbols) {
-            if (s.startsWith(sym)) {
-                text.position = text.position.addX(sym.length)
-                return sym
-            }
-        }
-
-        throw SxError.create(getExceptionType(), text.position, text.line)
+        text.position = text.position.addX(symbol.value.length)
+        return symbol
     }
 }
 
-class BracketParser : SymbolAbstractParser<Bracket>() {
-    companion object {
-        private val _instance = BracketParser()
-        fun i(): BracketParser = _instance
-    }
+object BracketParser : SxParser<Bracket> by SymbolParser(
+    SymbolGroupEnum.BRACKET.members,
+    SxErrorType.EXPECTED_BRACKET,
+    ::Bracket
+)
 
-    override fun getSymbols(): Set<SymbolEnum> = SymbolGroupEnum.BRACKET.members
+object CommaParser : SxParser<Comma> by SymbolParser(
+    SymbolGroupEnum.COMMAS.members,
+    SxErrorType.EXPECTED_COMMA,
+    ::Comma
+)
 
-    override fun create(position: Position, enum: SymbolEnum?): Bracket {
-        if (enum == null) throw SxError.create(getExceptionType(), position, "")
-        return Bracket(position, enum)
-    }
+object DotParser : SxParser<Dot> by SymbolParser(
+    SymbolGroupEnum.DOTS.members,
+    SxErrorType.EXPECTED_DOT,
+    ::Dot
+)
 
-    override fun getExceptionType(): SxErrorType = SxErrorType.EXPECTED_BRACKET
-}
-
-class CommaParser : SymbolAbstractParser<Comma>() {
-    companion object {
-        private val _instance = CommaParser()
-        fun i(): CommaParser = _instance
-    }
-
-    override fun getSymbols(): Set<SymbolEnum> = SymbolGroupEnum.COMMAS.members
-
-    override fun create(position: Position, enum: SymbolEnum?): Comma {
-        if (enum == null) throw SxError.create(getExceptionType(), position, "")
-        return Comma(position, enum)
-    }
-
-    override fun getExceptionType(): SxErrorType = SxErrorType.EXPECTED_COMMA
-}
-
-class DotParser : SymbolAbstractParser<Dot>() {
-
-    companion object {
-        private val _instance = DotParser()
-        fun i(): DotParser = _instance
-    }
-
-    override fun getSymbols(): Set<SymbolEnum>  = SymbolGroupEnum.DOTS.members
-
-    override fun create(position: Position, enum: SymbolEnum?): Dot {
-        if (enum == null) throw SxError.create(getExceptionType(), position, "")
-        return Dot(position, enum)
-    }
-
-    override fun getExceptionType(): SxErrorType = SxErrorType.EXPECTED_DOT
-}
-
-
-class OperatorExpressionParser : SymbolAbstractParser<Operator>() {
-    companion object {
-        private val _instance = OperatorExpressionParser()
-        fun i(): OperatorExpressionParser = _instance
-    }
-
-    override fun nextCharPosition(text: Text): Position? {
-        return text.nextCharPosition()
-    }
-
-    override fun getSymbols(): Set<SymbolEnum> = SymbolGroupEnum.OP_EXP.members
-
-    override fun create(position: Position, enum: SymbolEnum?): Operator {
-        if (enum == null) throw SxError.create(getExceptionType(), position, "")
-        return Operator(position, enum)
-    }
-
-    override fun getExceptionType(): SxErrorType = SxErrorType.EXPECTED_OPERATOR
-}
+object OperatorExpressionParser : SxParser<Operator> by SymbolParser(
+    SymbolGroupEnum.OP_EXP.members,
+    SxErrorType.EXPECTED_OPERATOR,
+    ::Operator
+)
