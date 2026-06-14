@@ -1,1 +1,1 @@
-Another Sx parser, this time it parses Kotlin language writte in Kotlin language
+Another Sx parser, this time it parses Kotlin language, written in Kotlin language

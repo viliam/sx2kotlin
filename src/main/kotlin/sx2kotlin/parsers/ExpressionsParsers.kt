@@ -53,11 +53,44 @@ class ExpressionParser : SxParser<ExpressionABC> {
     }
 
     override fun read(text: Text): ExpressionABC {
-        val expr = if (text.isPrefixBracketOpen()) {
+        var expr = if (text.isPrefixBracketOpen()) {
             BracketExpressionParser.i().read(text)
         } else {
             SimpleExpressionParser.i().read(text)
         }
+
+        while (!text.isEndOfFile() && (
+                    text.isPrefixCommandPostfix() ||
+                    text.isPrefixMemberAccessPostfix()
+                ))
+            expr = when {
+                text.isPrefixCommandPostfix() ->
+                    Command(expr, CommandPostfixParser.i().read(text))
+
+                else ->
+//                text.isPrefixMemberAccessPostfix() ->
+                    MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
+
+//                else ->
+//                    Array(expr, ArrayPostfixParser.i().read(text))
+            }
+
+//        while (!text.isEndOfFile() &&
+//            (text.isPrefixCommandPostfix() ||
+//                    text.isPrefixArrayPostfix() ||
+//                    text.isPrefixMemberAccessPostfix())
+//        ) {
+//            expr = when {
+//                text.isPrefixCommandPostfix() ->
+//                    Command(expr, CommandPostfixParser.i().read(text))
+//
+//                text.isPrefixMemberAccessPostfix() ->
+//                    MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
+//
+//                else ->
+//                    Array(expr, ArrayPostfixParser.i().read(text))
+//            }
+//        }
 
         if (text.isEndOfFile()) {
             return expr
@@ -94,3 +127,83 @@ class BracketExpressionParser : SxParser<ExpressionABC> {
         return BracketExpression(z1, ex, z2)
     }
 }
+
+class ParametersParser : SxParser<Parameters> {
+    companion object {
+        private val _instance = ParametersParser()
+        fun i(): ParametersParser = _instance
+    }
+
+    override fun read(text: Text): Parameters {
+        val parameters = mutableListOf<ExpressionABC>()
+        val pos = text.position
+
+        while (true) {
+            parameters.add(ExpressionParser.i().read(text))
+            if (text.isPrefixBracketClosed())
+                return Parameters(pos, parameters)
+            if (!text.isPrefixComma())
+                throw SxError.createNoMsg(SxErrorType.EXPECTED_PARAMETER, text.position)
+
+            CommaParser.i().read(text)
+        }
+    }
+}
+
+class CommandPostfixParser : SxParser<CommandPostfix> {
+    companion object {
+        private val _instance = CommandPostfixParser()
+        fun i(): CommandPostfixParser = _instance
+    }
+
+    override fun read(text: Text): CommandPostfix {
+        val bracketOpen = BracketParser.i().read(text)
+        val parameters = ParametersParser.i().read(text)
+        val bracketClose = BracketParser.i().read(text)
+        return CommandPostfix(bracketOpen, parameters, bracketClose)
+    }
+}
+
+
+class MemberAccessPostfixParser : SxParser<MemberAccessPostfix> {
+    companion object {
+        private val _instance = MemberAccessPostfixParser()
+        fun i(): MemberAccessPostfixParser = _instance
+    }
+
+    override fun read(text: Text): MemberAccessPostfix {
+        val dot = DotParser.i().read(text)
+        val name = WordExpressionParser.i().read(text)
+        return MemberAccessPostfix(dot, name)
+    }
+}
+
+
+
+//
+//class MemberAccessPostfixParser(SxParser[MemberAccessPostfix]):
+//    _instance = None
+//
+//def read(self, text: "Text") -> MemberAccessPostfix:
+//dot = DotParser.i().read(text)
+//name = WordExpressionParser.i().read(text)
+//return MemberAccessPostfix(dot, name)
+//
+//
+//class ArrayPostfixParser(SxParser[ArrayPostfix]):
+//    _instance = None
+//
+//def read(self, text: "Text") -> ArrayPostfix:
+//bracket_open = SquareBracketParser.i().read(text)
+//text.increase_open_brackets()
+//
+//elements = []
+//while not text.is_prefix_square_bracket_closed():
+//elements.append(ExpressionParser.i().read(text))
+//if text.is_prefix_comma():
+//CommaParser.i().read(text)
+//
+//bracket_close = SquareBracketParser.i().read(text)
+//text.decrease_open_brackets()
+//
+//return ArrayPostfix(bracket_open, elements, bracket_close)

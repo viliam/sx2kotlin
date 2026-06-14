@@ -106,9 +106,24 @@ class Text(private val lines: List<String>) {
         return SymbolEnum.BRACKET_NORM_CLOSE.isPrefix(a)
     }
 
+    fun isPrefixSquareBracketOpen(): Boolean {
+        val a = nextChar().toString()
+        return SymbolEnum.SQUARE_BRACKET_OPEN.isPrefix(a)
+    }
+
+    fun isPrefixSquareBracketClose(): Boolean {
+        val a = nextChar().toString()
+        return SymbolEnum.SQUARE_BRACKET_OPEN.isPrefix(a)
+    }
+
     fun isPrefixComma(): Boolean {
         val a = nextChar().toString()
-        return SymbolGroupEnum.COMMAS.isPrefix(a)
+        return SymbolEnum.COMMA.isPrefix(a)
+    }
+
+    fun isPrefixDot(): Boolean {
+        val a = nextChar().toString()
+        return SymbolEnum.DOT.isPrefix(a)
     }
 
     fun isPrefixVariable(): Boolean {
@@ -117,11 +132,18 @@ class Text(private val lines: List<String>) {
         }
     }
 
-    fun isPrefixDataType(): Boolean {
-        return IsPrefix(this).check { word ->
-            ReservedWordGroupEnum.DATA_TYPE.contains(ReservedWordEnum.makeSymbol(word) ?: ReservedWordEnum.VOID)
-        }
-    }
+    fun isPrefixCommandPostfix() = isPrefixBracketOpen()
+
+    fun isPrefixArrayPostfix() = isPrefixSquareBracketOpen()
+
+
+    fun isPrefixMemberAccessPostfix() = isPrefixDot()
+
+//    fun isPrefixDataType(): Boolean {
+//        return IsPrefix(this).check { word ->
+//            ReservedWordGroupEnum.DATA_TYPE.contains(ReservedWordEnum.makeSymbol(word) ?: ReservedWordEnum.VOID)
+//        }
+//    }
 
     companion object {
         fun findEndOfWord(line: String, x: Int): Int {

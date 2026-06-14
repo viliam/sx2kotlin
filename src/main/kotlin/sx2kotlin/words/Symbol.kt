@@ -8,6 +8,10 @@ open class Symbol(position: Position, val symbolEnum: SymbolEnum) : WordABC(posi
 
 class Bracket(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum)
 
+class Comma(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum)
+
+class Dot(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum)
+
 class Operator(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum) {
     val expType: ExpType
         get() = when (symbolEnum) {

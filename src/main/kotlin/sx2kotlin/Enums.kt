@@ -9,7 +9,10 @@ enum class SxErrorType {
     EXPECTED_BRACKET,
     EXPECTED_OPERATOR,
     EXPECTED_TOKEN,
-    UNKNOWN_OPERATOR
+    UNKNOWN_OPERATOR,
+    EXPECTED_PARAMETER,
+    EXPECTED_COMMA,
+    EXPECTED_DOT
 }
 
 class ExpTypeWithPriority(val priority: Int)
@@ -84,10 +87,12 @@ enum class SymbolEnum(val value: String) {
     BRACKET_NORM_CLOSE(")"),
     PARENTHESIS_BLOCK_OPEN("{"),
     PARENTHESIS_BLOCK_CLOSE("}"),
+    SQUARE_BRACKET_OPEN("["),
+    SQUARE_BRACKET_CLOSE("]"),
 
     COMMA(","),
     SEMICOLON(";"),
-    DOT(","); // Note: in Python it was DOT = "," which seems weird but I'll keep it. 
+    DOT("."); // Note: in Python it was DOT = "," which seems weird but I'll keep it.
 
     val symbol: String get() = value
 
@@ -129,7 +134,8 @@ enum class SymbolGroupEnum(val members: Set<SymbolEnum>) {
     BRACKET(setOf(
         SymbolEnum.BRACKET_NORM_OPEN, SymbolEnum.BRACKET_NORM_CLOSE,
         SymbolEnum.PARENTHESIS_BLOCK_OPEN, SymbolEnum.PARENTHESIS_BLOCK_CLOSE
-    ));
+    )),
+    DOTS(setOf(SymbolEnum.DOT));
 
     fun contains(word: SymbolEnum): Boolean = members.contains(word)
 
