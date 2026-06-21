@@ -3,22 +3,28 @@ package sx2kotlin.parsers
 import sx2kotlin.Position
 import sx2kotlin.SxError
 import sx2kotlin.SxErrorType
-import sx2kotlin.SymbolEnum
-import sx2kotlin.SymbolGroupEnum
 import sx2kotlin.Text
 import sx2kotlin.words.Bracket
-import sx2kotlin.words.Comma
+import sx2kotlin.words.BracketKind
+import sx2kotlin.words.CloseBracket
 import sx2kotlin.words.Dot
+import sx2kotlin.words.DotKind
+import sx2kotlin.words.OpenBracket
 import sx2kotlin.words.Operator
+import sx2kotlin.words.OperatorKind
+import sx2kotlin.words.Separator
+import sx2kotlin.words.SeparatorKind
 import sx2kotlin.words.Symbol
+import sx2kotlin.words.SymbolKind
 
-private class SymbolParser<out T : Symbol>(
-    symbols: Set<SymbolEnum>,
+private class SymbolParser<out T : Symbol, K : SymbolKind>(
+    symbols: Set<K>,
     private val exceptionType: SxErrorType,
-    private val create: (Position, SymbolEnum) -> T
+    private val create: (Position, K) -> T
 ) : SxParser<T> {
 
-    private val symbols = symbols.sortedByDescending { it.value.length }
+    private val symbolsMap : Map<String, K> = symbols.associateBy { it.token }
+    private val symbolsToken = symbolsMap.keys.sortedByDescending { it.length }
 
     override fun read(text: Text): T {
         try {
@@ -30,36 +36,46 @@ private class SymbolParser<out T : Symbol>(
         }
     }
 
-    private fun takeSymbol(text: Text): SymbolEnum {
+    private fun takeSymbol(text: Text): K {
         val remainingText = text.takeEndOfLine()
-        val symbol = symbols.firstOrNull { remainingText.startsWith(it.value) }
+        val symbolToken = symbolsToken.firstOrNull { remainingText.startsWith(it) }
             ?: throw SxError.create(exceptionType, text.position, text.line)
 
-        text.position = text.position.addX(symbol.value.length)
-        return symbol
+        text.position = text.position.addX(symbolToken.length)
+        return symbolsMap.getValue(symbolToken)
     }
 }
 
 object BracketParser : SxParser<Bracket> by SymbolParser(
-    SymbolGroupEnum.BRACKET.members,
+    BracketKind.entries.toSet(),
     SxErrorType.EXPECTED_BRACKET,
-    ::Bracket
+    { position, kind ->
+        when (kind) {
+            BracketKind.ROUND_OPEN,
+            BracketKind.SQUARE_OPEN,
+            BracketKind.CURLY_OPEN -> OpenBracket(position, kind)
+
+            BracketKind.ROUND_CLOSE,
+            BracketKind.SQUARE_CLOSE,
+            BracketKind.CURLY_CLOSE -> CloseBracket(position, kind)
+        }
+    }
 )
 
-object CommaParser : SxParser<Comma> by SymbolParser(
-    SymbolGroupEnum.COMMAS.members,
+object CommaParser : SxParser<Separator> by SymbolParser(
+    setOf(SeparatorKind.COMMA),
     SxErrorType.EXPECTED_COMMA,
-    ::Comma
+    ::Separator
 )
 
 object DotParser : SxParser<Dot> by SymbolParser(
-    SymbolGroupEnum.DOTS.members,
+    DotKind.entries.toSet(),
     SxErrorType.EXPECTED_DOT,
     ::Dot
 )
 
 object OperatorExpressionParser : SxParser<Operator> by SymbolParser(
-    SymbolGroupEnum.OP_EXP.members,
+    OperatorKind.entries.toSet(),
     SxErrorType.EXPECTED_OPERATOR,
     ::Operator
 )

@@ -2,28 +2,116 @@ package sx2kotlin.words
 
 import sx2kotlin.*
 
-open class Symbol(position: Position, val symbolEnum: SymbolEnum) : WordABC(position) {
-    override val content: String get() = symbolEnum.symbol
+sealed class Symbol(
+    position: Position,
+    final override val content: String
+) : AbstractWord(position)
+
+interface SymbolKind {
+    val token: String
+
+    fun isPrefix(value: String): Boolean =
+        value.isNotEmpty() && token.startsWith(value)
+}   
+
+enum class DotKind(
+    override val token: String
+) : SymbolKind {
+    DOT(".")
 }
 
-class Bracket(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum)
+class Dot(
+    position: Position,
+    val kind: DotKind
+) : Symbol(position, kind.token)
 
-class Comma(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum)
 
-class Dot(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum)
+enum class SeparatorKind(
+    override val token: String
+) : SymbolKind {
+    COMMA(","),
+    SEMICOLON(";")
+}
 
-class Operator(position: Position, symbolEnum: SymbolEnum) : Symbol(position, symbolEnum) {
-    val expType: ExpType
-        get() = when (symbolEnum) {
-            SymbolEnum.PLUS, SymbolEnum.MINUS, SymbolEnum.TIMES, SymbolEnum.MODULO,
-            SymbolEnum.DIVIDE, SymbolEnum.FLOOR_DIVISION, SymbolEnum.EXPONENT -> ExpType.INT
+open class Separator(
+    position: Position,
+    val kind: SeparatorKind
+) : Symbol(position, kind.token)
 
-            SymbolEnum.AND, SymbolEnum.OR, SymbolEnum.AND_STRONG, SymbolEnum.OR_STRONG -> ExpType.BOOL
 
-            SymbolEnum.SMALLER, SymbolEnum.GREATER, SymbolEnum.SMALLER_EQUAL,
-            SymbolEnum.GRATER_EQUAL, SymbolEnum.EQUAL, SymbolEnum.UNEQUAL -> ExpType.COMPARISON
+enum class OperatorGroup(val expType: ExpType) {
+    ARITHMETIC(ExpType.INT),
+    BOOLEAN(ExpType.BOOL),
+    COMPARISON(ExpType.COMPARISON),
+    ASSIGNMENT(ExpType.UNKNOWN);
 
-            SymbolEnum.ASSIGN -> ExpType.UNKNOWN
-            else -> throw SxError.createWithMessage(SxErrorType.UNKNOWN_OPERATOR, symbolEnum.toString(), position, "")
+    fun isPrefix(token: String): Boolean =
+        OperatorKind.entries.any {
+            it.group == this && it.isPrefix(token)
         }
 }
+
+enum class OperatorKind(
+    override val token: String,
+    val group: OperatorGroup
+) : SymbolKind {
+    PLUS("+", OperatorGroup.ARITHMETIC),
+    MINUS("-", OperatorGroup.ARITHMETIC),
+    TIMES("*", OperatorGroup.ARITHMETIC),
+    DIVIDE("/", OperatorGroup.ARITHMETIC),
+    MODULO("%", OperatorGroup.ARITHMETIC),
+    FLOOR_DIVISION("//", OperatorGroup.ARITHMETIC),
+    EXPONENT("**", OperatorGroup.ARITHMETIC),
+
+    AND("and", OperatorGroup.BOOLEAN),
+    OR("or", OperatorGroup.BOOLEAN),
+    AND_WEAK("&", OperatorGroup.BOOLEAN),
+    OR_WEAK("|", OperatorGroup.BOOLEAN),
+    AND_STRONG("&&", OperatorGroup.BOOLEAN),
+    OR_STRONG("||", OperatorGroup.BOOLEAN),
+
+    EQUAL("==", OperatorGroup.COMPARISON),
+    NOT_EQUAL("!=", OperatorGroup.COMPARISON),
+    SMALLER("<", OperatorGroup.COMPARISON),
+    GREATER(">", OperatorGroup.COMPARISON),
+    SMALLER_EQUAL("<=", OperatorGroup.COMPARISON),
+    GRATER_EQUAL(">=", OperatorGroup.COMPARISON),
+
+    ASSIGN("=", OperatorGroup.ASSIGNMENT)
+}
+
+class Operator(
+    position: Position,
+    val kind: OperatorKind
+) : Symbol(position, kind.token) {
+    val expType: ExpType get() = kind.group.expType
+}
+
+
+
+sealed class Bracket(
+    position: Position,
+    val kind: BracketKind
+) : Symbol(position, kind.token)
+
+class OpenBracket(
+    position: Position,
+    kind: BracketKind
+) : Bracket(position, kind)
+
+class CloseBracket(
+    position: Position,
+    kind: BracketKind
+) : Bracket(position, kind)
+
+enum class BracketKind(
+    override val token: String
+) : SymbolKind {
+    ROUND_OPEN("("),
+    ROUND_CLOSE(")"),
+    SQUARE_OPEN("["),
+    SQUARE_CLOSE("]"),
+    CURLY_OPEN("{"),
+    CURLY_CLOSE("}")
+}
+

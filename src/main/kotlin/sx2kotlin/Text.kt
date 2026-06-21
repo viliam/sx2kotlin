@@ -1,5 +1,10 @@
 package sx2kotlin
 
+import sx2kotlin.words.BracketKind
+import sx2kotlin.words.DotKind
+import sx2kotlin.words.OperatorGroup
+import sx2kotlin.words.SeparatorKind
+
 class Text(private val lines: List<String>) {
     var position: Position = Position(0, 0)
 
@@ -90,40 +95,40 @@ class Text(private val lines: List<String>) {
 
     fun isPrefixOperator(): Boolean {
         val a = nextChar().toString()
-        return SymbolGroupEnum.OP_COMPARISON.isPrefix(a) ||
-               SymbolGroupEnum.OP_ARITH.isPrefix(a) ||
-               SymbolGroupEnum.OP_ASSIGNMENT.isPrefix(a) ||
-               SymbolGroupEnum.OP_BOOL.isPrefix(a)
+        return OperatorGroup.COMPARISON.isPrefix(a) ||
+                OperatorGroup.ARITHMETIC.isPrefix(a) ||
+                OperatorGroup.ASSIGNMENT.isPrefix(a) ||
+                OperatorGroup.BOOLEAN.isPrefix(a)
     }
 
     fun isPrefixBracketOpen(): Boolean {
         val a = nextChar().toString()
-        return SymbolEnum.BRACKET_NORM_OPEN.isPrefix(a)
+        return BracketKind.ROUND_OPEN.isPrefix(a)
     }
 
     fun isPrefixBracketClosed(): Boolean {
         val a = nextChar().toString()
-        return SymbolEnum.BRACKET_NORM_CLOSE.isPrefix(a)
+        return BracketKind.ROUND_CLOSE.isPrefix(a)
     }
 
     fun isPrefixSquareBracketOpen(): Boolean {
         val a = nextChar().toString()
-        return SymbolEnum.SQUARE_BRACKET_OPEN.isPrefix(a)
+        return BracketKind.SQUARE_OPEN.isPrefix(a)
     }
 
     fun isPrefixSquareBracketClose(): Boolean {
         val a = nextChar().toString()
-        return SymbolEnum.SQUARE_BRACKET_OPEN.isPrefix(a)
+        return BracketKind.SQUARE_CLOSE.isPrefix(a)
     }
 
     fun isPrefixComma(): Boolean {
         val a = nextChar().toString()
-        return SymbolEnum.COMMA.isPrefix(a)
+        return SeparatorKind.COMMA.isPrefix(a)
     }
 
     fun isPrefixDot(): Boolean {
         val a = nextChar().toString()
-        return SymbolEnum.DOT.isPrefix(a)
+        return DotKind.DOT.isPrefix(a)
     }
 
     fun isPrefixVariable(): Boolean {

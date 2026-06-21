@@ -31,13 +31,13 @@ class VariableParser : SxParser<Variable> {
     }
 }
 
-class SimpleExpressionParser : SxParser<ExpressionABC> {
+class SimpleExpressionParser : SxParser<ExpressionAbstract> {
     companion object {
         private val _instance = SimpleExpressionParser()
         fun i(): SimpleExpressionParser = _instance
     }
 
-    override fun read(text: Text): ExpressionABC {
+    override fun read(text: Text): ExpressionAbstract {
         return when {
             text.isPrefixInt() -> IntegerParser.i().read(text)
             text.isPrefixVariable() -> VariableParser.i().read(text)
@@ -46,13 +46,13 @@ class SimpleExpressionParser : SxParser<ExpressionABC> {
     }
 }
 
-class ExpressionParser : SxParser<ExpressionABC> {
+class ExpressionParser : SxParser<ExpressionAbstract> {
     companion object {
         private val _instance = ExpressionParser()
         fun i(): ExpressionParser = _instance
     }
 
-    override fun read(text: Text): ExpressionABC {
+    override fun read(text: Text): ExpressionAbstract {
         var expr = if (text.isPrefixBracketOpen()) {
             BracketExpressionParser.i().read(text)
         } else {
@@ -113,13 +113,13 @@ class ExpressionParser : SxParser<ExpressionABC> {
     }
 }
 
-class BracketExpressionParser : SxParser<ExpressionABC> {
+class BracketExpressionParser : SxParser<ExpressionAbstract> {
     companion object {
         private val _instance = BracketExpressionParser()
         fun i(): BracketExpressionParser = _instance
     }
 
-    override fun read(text: Text): ExpressionABC {
+    override fun read(text: Text): ExpressionAbstract {
         val z1 = BracketParser.read(text)
         val ex = ExpressionParser.i().read(text)
         val z2 = BracketParser.read(text)
@@ -135,7 +135,7 @@ class ParametersParser : SxParser<Parameters> {
     }
 
     override fun read(text: Text): Parameters {
-        val parameters = mutableListOf<ExpressionABC>()
+        val parameters = mutableListOf<ExpressionAbstract>()
         val pos = text.position
 
         while (true) {
