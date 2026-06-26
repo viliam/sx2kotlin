@@ -66,31 +66,12 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
             expr = when {
                 text.isPrefixCommandPostfix() ->
                     Command(expr, CommandPostfixParser.i().read(text))
-
-                else ->
-//                text.isPrefixMemberAccessPostfix() ->
+                text.isPrefixMemberAccessPostfix() ->
                     MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
-
-//                else ->
-//                    Array(expr, ArrayPostfixParser.i().read(text))
+                else ->
+                    Array(expr, ArrayPostfixParser.i().read(text))
             }
 
-//        while (!text.isEndOfFile() &&
-//            (text.isPrefixCommandPostfix() ||
-//                    text.isPrefixArrayPostfix() ||
-//                    text.isPrefixMemberAccessPostfix())
-//        ) {
-//            expr = when {
-//                text.isPrefixCommandPostfix() ->
-//                    Command(expr, CommandPostfixParser.i().read(text))
-//
-//                text.isPrefixMemberAccessPostfix() ->
-//                    MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
-//
-//                else ->
-//                    Array(expr, ArrayPostfixParser.i().read(text))
-//            }
-//        }
 
         if (text.isEndOfFile()) {
             return expr
@@ -179,18 +160,29 @@ class MemberAccessPostfixParser : SxParser<MemberAccessPostfix> {
 }
 
 
+class ArrayPostfixParser : SxParser<ArrayPostfix> {
+    companion object {
+        private val _instance = ArrayPostfixParser()
+        fun i(): ArrayPostfixParser = _instance
+    }
 
-//
-//class MemberAccessPostfixParser(SxParser[MemberAccessPostfix]):
-//    _instance = None
-//
-//def read(self, text: "Text") -> MemberAccessPostfix:
-//dot = DotParser.i().read(text)
-//name = WordExpressionParser.i().read(text)
-//return MemberAccessPostfix(dot, name)
-//
-//
-//class ArrayPostfixParser(SxParser[ArrayPostfix]):
+    override fun read(text: Text): ArrayPostfix {
+        val bracketOpen = BracketParser.read(text)
+
+        val elements = mutableListOf<ExpressionAbstract>()
+        while  (!text.isPrefixSquareBracketClose()) {
+            elements.add(ExpressionParser.i().read(text))
+            if (text.isPrefixComma() )
+                CommaParser.read(text)
+        }
+
+        val bracketClose = BracketParser.read(text)
+
+        return ArrayPostfix(bracketOpen, elements, bracketClose)
+    }
+
+
+}
 //    _instance = None
 //
 //def read(self, text: "Text") -> ArrayPostfix:
@@ -207,3 +199,4 @@ class MemberAccessPostfixParser : SxParser<MemberAccessPostfix> {
 //text.decrease_open_brackets()
 //
 //return ArrayPostfix(bracket_open, elements, bracket_close)
+
