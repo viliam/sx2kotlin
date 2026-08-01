@@ -11,35 +11,28 @@ class Text(private val lines: List<String>) {
     val line: String
         get() = lines[position.y]
 
-    fun lineAt(row: Int): String {
-        return if (row in lines.indices) lines[row] else ""
-    }
-
     fun nextCharPosition(): Position? {
-        var x = position.x
         var y = position.y
+        var x = position.x
 
-        while (y < lines.size) {
-            val currentLine = lines[y]
-            val tail = currentLine.substring(x)
-            val lstripCount = tail.length - tail.trimStart().length
-            
-            if (tail.trimStart().isNotEmpty()) {
-                x += lstripCount
-                break
-            } else {
-                x = 0
-                y++
+        while (y in lines.indices) {
+            val offset = nextCharPositionAtLine(x, y)
+
+            if (offset != -1) {
+                position = Position(x + offset, y)
+                return position
             }
+
+            y++
+            x = 0
         }
 
-        if (!isValidPosition(x, y)) {
-            return null
-        }
-
-        position = Position(x, y)
-        return position
+        return null
     }
+
+    private fun nextCharPositionAtLine(x: Int, y: Int): Int = lines[y]
+        .drop(x)
+        .indexOfFirst { !it.isWhitespace() }
 
     fun isValidPosition(x: Int, y: Int): Boolean {
         if (y !in lines.indices) return false
