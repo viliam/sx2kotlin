@@ -91,10 +91,32 @@ class TestExpressionsParsers {
             listOf("func(1, 2)" ) to ExpType.UNKNOWN,
             listOf("lolo(a+1,b,c)") to ExpType.UNKNOWN,
             listOf("func(1)(2)") to ExpType.UNKNOWN,
-//            listOf("arr[0](1)" ) to ExpType.INT
+            listOf("arr[0](1)" ) to ExpType.UNKNOWN
         ))
     }
 
+    @Test
+    fun testReadArray() {
+        doTheTest(listOf(
+            listOf("[1, 2]") to ExpType.UNKNOWN,
+            listOf("[]") to ExpType.UNKNOWN,
+            listOf("arr[0]") to ExpType.UNKNOWN,
+            listOf("arr[i+1]") to ExpType.UNKNOWN,
+            listOf("arr[0][1]") to ExpType.UNKNOWN,
+            listOf("func(1, 2)[0]") to ExpType.UNKNOWN,
+            listOf("arr[0]+1") to ExpType.INT,
+            listOf("[1, 2][0]") to ExpType.UNKNOWN
+        ))
+    }
+
+    @Test
+    fun testReadArrayNegative() {
+        doTheTestNegative(listOf(
+            listOf("arr[0") to SxErrorType.END_OF_FILE,
+            listOf("[1, 2") to SxErrorType.END_OF_FILE,
+            listOf("arr[0 1]") to SxErrorType.UNCORRECTED_END_OF_EXPRESSION
+        ))
+    }
 
     @Test
     fun testReadMemberAccessPositive() {
@@ -104,10 +126,10 @@ class TestExpressionsParsers {
             listOf("a.b.c.d") to ExpType.UNKNOWN,
             listOf("obj.method(1)") to ExpType.UNKNOWN,
             listOf("obj.method(1, 2)") to ExpType.UNKNOWN,
-//            listOf("obj.arr[0]") to ExpType.UNKNOWN,
-//            listOf("arr[0].name") to ExpType.UNKNOWN,
+            listOf("obj.arr[0]") to ExpType.UNKNOWN,
+            listOf("arr[0].name") to ExpType.UNKNOWN,
             listOf("func(1).name") to ExpType.UNKNOWN,
-//            listOf("obj.a.b(1).c[0].d") to ExpType.UNKNOWN,
+            listOf("obj.a.b(1).c[0].d") to ExpType.UNKNOWN,
             listOf("obj.value+1") to ExpType.INT,
             listOf("obj.value+other.value") to ExpType.INT,
             listOf("obj.x>obj.y") to ExpType.COMPARISON,
@@ -115,59 +137,15 @@ class TestExpressionsParsers {
             listOf("obj.a and obj.b") to ExpType.BOOL,
         ))
     }
-    //
-//    def test_read_member_access_positive(self):
-//    self._do_the_test([
-//    (["obj.name"], ExpType.UNKNOWN),
-//    (["a.b.c"], ExpType.UNKNOWN),
-//    (["a.b.c.d"], ExpType.UNKNOWN),
-//    (["obj.method(1)"], ExpType.UNKNOWN),
-//    (["obj.method(1, 2)"], ExpType.UNKNOWN),
-//    (["obj.arr[0]"], ExpType.UNKNOWN),
-//    (["arr[0].name"], ExpType.UNKNOWN),
-//    (["func(1).name"], ExpType.UNKNOWN),
-//    (["obj.a.b(1).c[0].d"], ExpType.UNKNOWN),
-//    (["obj.value+1"], ExpType.INT),
-//    (["obj.value+other.value"], ExpType.INT),
-//    (["obj.x>obj.y"], ExpType.COMPARISON),
-//    (["(obj.name)"], ExpType.UNKNOWN),
-//    (["obj.a and obj.b"], ExpType.BOOL),
-//    ])
-//
-//    def test_read_member_access_negative_eof(self):
-//    self._do_the_test_negative([
-//    (["obj."], SxErrorType.EXPECTED_TOKEN),
-//    ])
-//
-//    def test_read_member_access_negative_incomplete_chain(self):
-//    self._do_the_test_negative([
-//    (["obj.name."], SxErrorType.EXPECTED_TOKEN),
-//    ])
-//
-//    def test_read_member_access_negative_symbol(self):
-//    self._do_the_test_negative([
-//    (["obj.+name"], SxErrorType.EXPECTED_TOKEN),
-//    ])
 
-
-//    def test_read_arrays(self):
-//    self._do_the_test([
-//    (["[1, 2]"], ExpType.UNKNOWN),
-//    (["[]"], ExpType.UNKNOWN),
-//    (["arr[0]"], ExpType.UNKNOWN),
-//    (["arr[i+1]"], ExpType.UNKNOWN),
-//    (["arr[0][1]"], ExpType.UNKNOWN),
-//    (["func(1, 2)[0]"], ExpType.UNKNOWN),
-//    (["arr[0]+1"], ExpType.INT),
-//    (["[1, 2][0]"], ExpType.UNKNOWN)
-//    ])
-//
-//    def test_read_arrays_negative(self):
-//    self._do_the_test_negative([
-//    (["arr[0"], SxErrorType.END_OF_FILE),
-//    (["[1, 2"], SxErrorType.END_OF_FILE),
-//    (["arr[0 1]"], SxErrorType.UNCORRECTED_END_OF_EXPRESSION)
-//    ])
+    @Test
+    fun testReadMemberAccessNegative() {
+        doTheTestNegative(listOf(
+            listOf("obj.") to SxErrorType.EXPECTED_TOKEN,
+            listOf("obj.name.") to SxErrorType.EXPECTED_TOKEN,
+            listOf("obj.+name") to SxErrorType.EXPECTED_TOKEN,
+        ))
+    }
 
 
     private fun doTheTest(cases: List<Pair<List<String>, ExpType>>) {

@@ -55,13 +55,16 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
     override fun read(text: Text): ExpressionAbstract {
         var expr = if (text.isPrefixBracketOpen()) {
             BracketExpressionParser.i().read(text)
+        } else if (text.isPrefixSquareBracketOpen()) {
+            ArrayPostfixParser.i().read(text)
         } else {
             SimpleExpressionParser.i().read(text)
         }
 
         while (!text.isEndOfFile() && (
                     text.isPrefixCommandPostfix() ||
-                    text.isPrefixMemberAccessPostfix()
+                    text.isPrefixMemberAccessPostfix() ||
+                    text.isPrefixArrayPostfix()
                 ))
             expr = when {
                 text.isPrefixCommandPostfix() ->
@@ -85,7 +88,9 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
         if (!text.isEndOfFile() &&
             !text.isPrefixOperator() &&
             !text.isPrefixComma() &&
-            !text.isPrefixBracketClosed()
+            !text.isPrefixBracketClosed() &&
+            !text.isPrefixSquareBracketClose() &&
+            !text.isPrefixMemberAccessPostfix()
         ) {
             throw SxError.create(SxErrorType.UNCORRECTED_END_OF_EXPRESSION, text.position, text.line)
         }
@@ -180,23 +185,4 @@ class ArrayPostfixParser : SxParser<ArrayPostfix> {
 
         return ArrayPostfix(bracketOpen, elements, bracketClose)
     }
-
-
 }
-//    _instance = None
-//
-//def read(self, text: "Text") -> ArrayPostfix:
-//bracket_open = SquareBracketParser.i().read(text)
-//text.increase_open_brackets()
-//
-//elements = []
-//while not text.is_prefix_square_bracket_closed():
-//elements.append(ExpressionParser.i().read(text))
-//if text.is_prefix_comma():
-//CommaParser.i().read(text)
-//
-//bracket_close = SquareBracketParser.i().read(text)
-//text.decrease_open_brackets()
-//
-//return ArrayPostfix(bracket_open, elements, bracket_close)
-

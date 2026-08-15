@@ -67,32 +67,32 @@ class TestText {
     }
 
     @Test
-    fun testLookAheadFindsWord() {
+    fun testPeekWordFindsWord() {
         val text = Text(listOf("TestWord example"))
-        val result = text.lookAhead()
+        val result = text.peekWord()
         assertEquals("TestWord", result)
     }
 
     @Test
-    fun testLookAheadEmptyString() {
+    fun testPeekWordEmptyString() {
         val text = Text(listOf(""))
-        val result = text.lookAhead()
+        val result = text.peekWord()
         assertEquals("", result)
     }
 
     @Test
-    fun testLookAheadStartIndexBeyondLength() {
+    fun testPeekWordStartIndexBeyondLength() {
         val text = Text(listOf("ShortWord"))
         text.position = Position("ShortWord".length, 0)
-        val result = text.lookAhead()
+        val result = text.peekWord()
         assertEquals("", result)
     }
 
     @Test
-    fun testLookAheadNonWordCharacter() {
+    fun testPeekWordNonWordCharacter() {
         val text = Text(listOf("Test1@Word"))
         text.position = Position(5, 0)
-        val result = text.lookAhead()
+        val result = text.peekWord()
         assertEquals("", result)
     }
 

@@ -1,10 +1,5 @@
 package sx2kotlin
 
-import sx2kotlin.words.BracketKind
-import sx2kotlin.words.DotKind
-import sx2kotlin.words.OperatorGroup
-import sx2kotlin.words.SeparatorKind
-
 class Text(private val lines: List<String>) {
     var position: Position = Position(0, 0)
 
@@ -54,7 +49,7 @@ class Text(private val lines: List<String>) {
         return nextChar { nextCharPosition() }
     }
 
-    fun lookAhead(): String {
+    fun peekWord(): String {
         val currentLine = line
         val x = position.x
         val endX = findEndOfWord(currentLine, x)
@@ -79,92 +74,12 @@ class Text(private val lines: List<String>) {
         }
     }
 
-    fun isPrefixInt(): Boolean = nextChar().isDigit()
-
-    fun isPrefixLetter(): Boolean {
-        val c = nextChar()
-        return c.isLetter() || c == '_'
-    }
-
-    fun isPrefixOperator(): Boolean {
-        val a = nextChar().toString()
-        return OperatorGroup.COMPARISON.isPrefix(a) ||
-                OperatorGroup.ARITHMETIC.isPrefix(a) ||
-                OperatorGroup.ASSIGNMENT.isPrefix(a) ||
-                OperatorGroup.BOOLEAN.isPrefix(a)
-    }
-
-    fun isPrefixBracketOpen(): Boolean {
-        val a = nextChar().toString()
-        return BracketKind.ROUND_OPEN.isPrefix(a)
-    }
-
-    fun isPrefixBracketClosed(): Boolean {
-        val a = nextChar().toString()
-        return BracketKind.ROUND_CLOSE.isPrefix(a)
-    }
-
-    fun isPrefixSquareBracketOpen(): Boolean {
-        val a = nextChar().toString()
-        return BracketKind.SQUARE_OPEN.isPrefix(a)
-    }
-
-    fun isPrefixSquareBracketClose(): Boolean {
-        val a = nextChar().toString()
-        return BracketKind.SQUARE_CLOSE.isPrefix(a)
-    }
-
-    fun isPrefixComma(): Boolean {
-        val a = nextChar().toString()
-        return SeparatorKind.COMMA.isPrefix(a)
-    }
-
-    fun isPrefixDot(): Boolean {
-        val a = nextChar().toString()
-        return DotKind.DOT.isPrefix(a)
-    }
-
-    fun isPrefixVariable(): Boolean {
-        return IsPrefix(this).check { word ->
-            !ReservedWordEnum.isWord(word) && (isValidPosition(position.x, position.y) || !isPrefixBracketOpen())
-        }
-    }
-
-    fun isPrefixCommandPostfix() = isPrefixBracketOpen()
-
-    fun isPrefixArrayPostfix() = isPrefixSquareBracketOpen()
-
-
-    fun isPrefixMemberAccessPostfix() = isPrefixDot()
-
-//    fun isPrefixDataType(): Boolean {
-//        return IsPrefix(this).check { word ->
-//            ReservedWordGroupEnum.DATA_TYPE.contains(ReservedWordEnum.makeSymbol(word) ?: ReservedWordEnum.VOID)
-//        }
-//    }
-
     companion object {
         fun findEndOfWord(line: String, x: Int): Int {
             for (i in x until line.length) {
                 if (!line[i].isLetterOrDigit()) return i
             }
             return line.length
-        }
-    }
-}
-
-class IsPrefix(private val text: Text) {
-    fun check(isPrefix: (String) -> Boolean): Boolean {
-        val pos = text.position
-        return try {
-            if (!text.isPrefixLetter()) {
-                false
-            } else {
-                val word = text.lookAhead()
-                isPrefix(word)
-            }
-        } finally {
-            text.position = pos
         }
     }
 }

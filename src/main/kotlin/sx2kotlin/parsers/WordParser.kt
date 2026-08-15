@@ -17,7 +17,7 @@ open class WordParser : SxParser<Word> {
     override fun read(text: Text): Word {
         nextCharPosition(text)
         val pos = text.position
-        val wordContent = text.lookAhead()
+        val wordContent = text.peekWord()
 
         if (wordContent.isEmpty()) {
             throw SxError.create(SxErrorType.EXPECTED_TOKEN, text.position, text.line)
