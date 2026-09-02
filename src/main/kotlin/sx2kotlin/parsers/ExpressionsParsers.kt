@@ -61,20 +61,7 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
             SimpleExpressionParser.i().read(text)
         }
 
-        while (!text.isEndOfFile() && (
-                    text.isPrefixCommandPostfix() ||
-                    text.isPrefixMemberAccessPostfix() ||
-                    text.isPrefixArrayPostfix()
-                ))
-            expr = when {
-                text.isPrefixCommandPostfix() ->
-                    Command(expr, CommandPostfixParser.i().read(text))
-                text.isPrefixMemberAccessPostfix() ->
-                    MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
-                else ->
-                    Array(expr, ArrayPostfixParser.i().read(text))
-            }
-
+        expr = readPostfixes(text, expr)
 
         if (text.isEndOfFile()) {
             return expr
@@ -96,6 +83,29 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
         }
 
         return expr
+    }
+
+    private fun readPostfixes(text: Text, baseExpression: ExpressionAbstract): ExpressionAbstract {
+        var expr = baseExpression
+
+        while (!text.isEndOfFile() && text.isPrefixPostfix()) {
+            expr = when {
+                text.isPrefixCommandPostfix() ->
+                    Command(expr, CommandPostfixParser.i().read(text))
+                text.isPrefixMemberAccessPostfix() ->
+                    MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
+                else ->
+                    Array(expr, ArrayPostfixParser.i().read(text))
+            }
+        }
+
+        return expr
+    }
+
+    private fun Text.isPrefixPostfix(): Boolean {
+        return isPrefixCommandPostfix() ||
+                isPrefixMemberAccessPostfix() ||
+                isPrefixArrayPostfix()
     }
 }
 
