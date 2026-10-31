@@ -5,14 +5,14 @@ import sx2kotlin.words.DotKind
 import sx2kotlin.words.OperatorGroup
 import sx2kotlin.words.SeparatorKind
 
-fun Text.isPrefixInt(): Boolean = nextChar().isDigit()
+fun Text.startsWithInt(): Boolean = nextChar().isDigit()
 
-fun Text.isPrefixLetter(): Boolean {
+fun Text.startsWithLetter(): Boolean {
     val c = nextChar()
     return c.isLetter() || c == '_'
 }
 
-fun Text.isPrefixOperator(): Boolean {
+fun Text.startsWithOperator(): Boolean {
     val a = nextChar().toString()
     return OperatorGroup.COMPARISON.isPrefix(a) ||
             OperatorGroup.ARITHMETIC.isPrefix(a) ||
@@ -20,63 +20,63 @@ fun Text.isPrefixOperator(): Boolean {
             OperatorGroup.BOOLEAN.isPrefix(a)
 }
 
-fun Text.isPrefixBracketOpen(): Boolean {
+fun Text.startsWithBracketOpen(): Boolean {
     val a = nextChar().toString()
     return BracketKind.ROUND_OPEN.isPrefix(a)
 }
 
-fun Text.isPrefixBracketClosed(): Boolean {
+fun Text.startsWithBracketClosed(): Boolean {
     val a = nextChar().toString()
     return BracketKind.ROUND_CLOSE.isPrefix(a)
 }
 
-fun Text.isPrefixSquareBracketOpen(): Boolean {
+fun Text.startsWithSquareBracketOpen(): Boolean {
     val a = nextChar().toString()
     return BracketKind.SQUARE_OPEN.isPrefix(a)
 }
 
-fun Text.isPrefixSquareBracketClose(): Boolean {
+fun Text.startsWithSquareBracketClose(): Boolean {
     val a = nextChar().toString()
     return BracketKind.SQUARE_CLOSE.isPrefix(a)
 }
 
-fun Text.isPrefixComma(): Boolean {
+fun Text.startsWithComma(): Boolean {
     val a = nextChar().toString()
     return SeparatorKind.COMMA.isPrefix(a)
 }
 
-fun Text.isPrefixDot(): Boolean {
+fun Text.startsWithDot(): Boolean {
     val a = nextChar().toString()
     return DotKind.DOT.isPrefix(a)
 }
 
-fun Text.isPrefixVariable(): Boolean {
-    return IsPrefix(this).check { word ->
-        !ReservedWordEnum.isWord(word) && (isValidPosition(position.x, position.y) || !isPrefixBracketOpen())
+fun Text.startsWithVariable(): Boolean {
+    return StartsWith(this).check { word ->
+        !ReservedWordEnum.isWord(word) && (isValidPosition(position.x, position.y) || !startsWithBracketOpen())
     }
 }
 
-fun Text.isPrefixCommandPostfix() = isPrefixBracketOpen()
+fun Text.startsWithCommandPostfix() = startsWithBracketOpen()
 
-fun Text.isPrefixArrayPostfix() = isPrefixSquareBracketOpen()
+fun Text.startsWithArrayPostfix() = startsWithSquareBracketOpen()
 
-fun Text.isPrefixMemberAccessPostfix() = isPrefixDot()
+fun Text.startsWithMemberAccessPostfix() = startsWithDot()
 
-//fun Text.isPrefixDataType(): Boolean {
-//    return IsPrefix(this).check { word ->
+//fun Text.startsWithDataType(): Boolean {
+//    return StartsWith(this).check { word ->
 //        ReservedWordGroupEnum.DATA_TYPE.contains(ReservedWordEnum.makeSymbol(word) ?: ReservedWordEnum.VOID)
 //    }
 //}
 
-private class IsPrefix(private val text: Text) {
-    fun check(isPrefix: (String) -> Boolean): Boolean {
+private class StartsWith(private val text: Text) {
+    fun check(startsWith: (String) -> Boolean): Boolean {
         val pos = text.position
         return try {
-            if (!text.isPrefixLetter()) {
+            if (!text.startsWithLetter()) {
                 false
             } else {
                 val word = text.peekWord()
-                isPrefix(word)
+                startsWith(word)
             }
         } finally {
             text.position = pos

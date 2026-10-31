@@ -39,8 +39,8 @@ class SimpleExpressionParser : SxParser<ExpressionAbstract> {
 
     override fun read(text: Text): ExpressionAbstract {
         return when {
-            text.isPrefixInt() -> IntegerParser.i().read(text)
-            text.isPrefixVariable() -> VariableParser.i().read(text)
+            text.startsWithInt() -> IntegerParser.i().read(text)
+            text.startsWithVariable() -> VariableParser.i().read(text)
             else -> throw SxError.create(SxErrorType.UNEXPECTED_PREFIX, text.position, text.line)
         }
     }
@@ -53,9 +53,9 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
     }
 
     override fun read(text: Text): ExpressionAbstract {
-        var expr = if (text.isPrefixBracketOpen()) {
+        var expr = if (text.startsWithBracketOpen()) {
             BracketExpressionParser.i().read(text)
-        } else if (text.isPrefixSquareBracketOpen()) {
+        } else if (text.startsWithSquareBracketOpen()) {
             ArrayPostfixParser.i().read(text)
         } else {
             SimpleExpressionParser.i().read(text)
@@ -67,17 +67,17 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
             return expr
         }
 
-        if (text.isPrefixOperator()) {
+        if (text.startsWithOperator()) {
             val op = OperatorExpressionParser.read(text)
             return Expression(expr, op, i().read(text))
         }
 
         if (!text.isEndOfFile() &&
-            !text.isPrefixOperator() &&
-            !text.isPrefixComma() &&
-            !text.isPrefixBracketClosed() &&
-            !text.isPrefixSquareBracketClose() &&
-            !text.isPrefixMemberAccessPostfix()
+            !text.startsWithOperator() &&
+            !text.startsWithComma() &&
+            !text.startsWithBracketClosed() &&
+            !text.startsWithSquareBracketClose() &&
+            !text.startsWithMemberAccessPostfix()
         ) {
             throw SxError.create(SxErrorType.UNCORRECTED_END_OF_EXPRESSION, text.position, text.line)
         }
@@ -88,11 +88,11 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
     private fun readPostfixes(text: Text, baseExpression: ExpressionAbstract): ExpressionAbstract {
         var expr = baseExpression
 
-        while (!text.isEndOfFile() && text.isPrefixPostfix()) {
+        while (!text.isEndOfFile() && text.startsWithPostfix()) {
             expr = when {
-                text.isPrefixCommandPostfix() ->
+                text.startsWithCommandPostfix() ->
                     Command(expr, CommandPostfixParser.i().read(text))
-                text.isPrefixMemberAccessPostfix() ->
+                text.startsWithMemberAccessPostfix() ->
                     MemberAccess(expr, MemberAccessPostfixParser.i().read(text))
                 else ->
                     Array(expr, ArrayPostfixParser.i().read(text))
@@ -102,10 +102,10 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
         return expr
     }
 
-    private fun Text.isPrefixPostfix(): Boolean {
-        return isPrefixCommandPostfix() ||
-                isPrefixMemberAccessPostfix() ||
-                isPrefixArrayPostfix()
+    private fun Text.startsWithPostfix(): Boolean {
+        return startsWithCommandPostfix() ||
+                startsWithMemberAccessPostfix() ||
+                startsWithArrayPostfix()
     }
 }
 
@@ -136,9 +136,9 @@ class ParametersParser : SxParser<Parameters> {
 
         while (true) {
             parameters.add(ExpressionParser.i().read(text))
-            if (text.isPrefixBracketClosed())
+            if (text.startsWithBracketClosed())
                 return Parameters(pos, parameters)
-            if (!text.isPrefixComma())
+            if (!text.startsWithComma())
                 throw SxError.createNoMsg(SxErrorType.EXPECTED_PARAMETER, text.position)
 
             CommaParser.read(text)
@@ -185,9 +185,9 @@ class ArrayPostfixParser : SxParser<ArrayPostfix> {
         val bracketOpen = BracketParser.read(text)
 
         val elements = mutableListOf<ExpressionAbstract>()
-        while  (!text.isPrefixSquareBracketClose()) {
+        while  (!text.startsWithSquareBracketClose()) {
             elements.add(ExpressionParser.i().read(text))
-            if (text.isPrefixComma() )
+            if (text.startsWithComma() )
                 CommaParser.read(text)
         }
 
