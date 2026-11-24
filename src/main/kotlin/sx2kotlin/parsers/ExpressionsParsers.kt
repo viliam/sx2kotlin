@@ -31,13 +31,13 @@ class VariableParser : SxParser<Variable> {
     }
 }
 
-class SimpleExpressionParser : SxParser<ExpressionAbstract> {
+class SimpleExpressionParser : SxParser<AbstractExpression> {
     companion object {
         private val _instance = SimpleExpressionParser()
         fun i(): SimpleExpressionParser = _instance
     }
 
-    override fun read(text: Text): ExpressionAbstract {
+    override fun read(text: Text): AbstractExpression {
         return when {
             text.startsWithInt() -> IntegerParser.i().read(text)
             text.startsWithVariable() -> VariableParser.i().read(text)
@@ -46,13 +46,13 @@ class SimpleExpressionParser : SxParser<ExpressionAbstract> {
     }
 }
 
-class ExpressionParser : SxParser<ExpressionAbstract> {
+class ExpressionParser : SxParser<AbstractExpression> {
     companion object {
         private val _instance = ExpressionParser()
         fun i(): ExpressionParser = _instance
     }
 
-    override fun read(text: Text): ExpressionAbstract {
+    override fun read(text: Text): AbstractExpression {
         var expr = if (text.startsWithBracketOpen()) {
             BracketExpressionParser.i().read(text)
         } else if (text.startsWithSquareBracketOpen()) {
@@ -85,7 +85,7 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
         return expr
     }
 
-    private fun readPostfixes(text: Text, baseExpression: ExpressionAbstract): ExpressionAbstract {
+    private fun readPostfixes(text: Text, baseExpression: AbstractExpression): AbstractExpression {
         var expr = baseExpression
 
         while (!text.isEndOfFile() && text.startsWithPostfix()) {
@@ -109,13 +109,13 @@ class ExpressionParser : SxParser<ExpressionAbstract> {
     }
 }
 
-class BracketExpressionParser : SxParser<ExpressionAbstract> {
+class BracketExpressionParser : SxParser<AbstractExpression> {
     companion object {
         private val _instance = BracketExpressionParser()
         fun i(): BracketExpressionParser = _instance
     }
 
-    override fun read(text: Text): ExpressionAbstract {
+    override fun read(text: Text): AbstractExpression {
         val z1 = BracketParser.read(text)
         val ex = ExpressionParser.i().read(text)
         val z2 = BracketParser.read(text)
@@ -131,7 +131,7 @@ class ParametersParser : SxParser<Parameters> {
     }
 
     override fun read(text: Text): Parameters {
-        val parameters = mutableListOf<ExpressionAbstract>()
+        val parameters = mutableListOf<AbstractExpression>()
         val pos = text.position
 
         while (true) {
@@ -184,7 +184,7 @@ class ArrayPostfixParser : SxParser<ArrayPostfix> {
     override fun read(text: Text): ArrayPostfix {
         val bracketOpen = BracketParser.read(text)
 
-        val elements = mutableListOf<ExpressionAbstract>()
+        val elements = mutableListOf<AbstractExpression>()
         while  (!text.startsWithSquareBracketClose()) {
             elements.add(ExpressionParser.i().read(text))
             if (text.startsWithComma() )

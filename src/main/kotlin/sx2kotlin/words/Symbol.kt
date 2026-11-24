@@ -87,8 +87,6 @@ class Operator(
     val expType: ExpType get() = kind.group.expType
 }
 
-
-
 sealed class Bracket(
     position: Position,
     val kind: BracketKind
@@ -113,5 +111,19 @@ enum class BracketKind(
     SQUARE_CLOSE("]"),
     CURLY_OPEN("{"),
     CURLY_CLOSE("}")
+}
+
+class AssignmentSymbol(
+    position: Position,
+    kind: AssignmentKind
+) : Symbol(position, kind.token)
+
+enum class AssignmentKind(override val token: String) : SymbolKind {
+    ASSIGN("="),
+    PLUS_ASSIGN("+="),
+    MINUS_ASSIGN("-="),
+    TIMES_ASSIGN("*="),
+    DIV_ASSIGN("/="),
+    REM_ASSIGN("%=")
 }
 

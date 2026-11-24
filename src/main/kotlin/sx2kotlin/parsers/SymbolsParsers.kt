@@ -4,6 +4,8 @@ import sx2kotlin.Position
 import sx2kotlin.SxError
 import sx2kotlin.SxErrorType
 import sx2kotlin.Text
+import sx2kotlin.words.AssignmentKind
+import sx2kotlin.words.AssignmentSymbol
 import sx2kotlin.words.Bracket
 import sx2kotlin.words.BracketKind
 import sx2kotlin.words.CloseBracket
@@ -78,4 +80,10 @@ object OperatorExpressionParser : SxParser<Operator> by SymbolParser(
     OperatorKind.entries.toSet(),
     SxErrorType.EXPECTED_OPERATOR,
     ::Operator
+)
+
+object AssigmentSymbolParser : SxParser<AssignmentSymbol> by SymbolParser(
+    AssignmentKind.entries.toSet(),
+    SxErrorType.EXPECTED_OPERATOR,
+    ::AssignmentSymbol
 )
